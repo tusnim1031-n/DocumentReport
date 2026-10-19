@@ -24,8 +24,6 @@ values ('<auth-user-uuid>', '<ชื่อเจ้าหน้าที่>', '
 
 ถ้า deploy ผ่าน Cloudflare Workers Builds ให้ตั้ง Deploy command เป็น `pnpm run deploy` (หรือ `npm run deploy` เมื่อติดตั้งด้วย npm) แทน `npx wrangler deploy` โดยตรง คำสั่งตรงจะไม่สร้าง `.open-next/worker.js` และ Wrangler จะตีความโปรเจกต์เป็น static assets จึงเกิด error ว่าไม่พบ directory containing static files ตั้ง Build command ให้ติดตั้ง dependencies ตาม package manager ที่ใช้ และกำหนด `NEXT_PUBLIC_SUPABASE_URL` กับ `NEXT_PUBLIC_SUPABASE_ANON_KEY` ใน Build variables; ตั้ง server secrets เพิ่มใน Worker secrets ตามต้องใช้จริง อย่า commit ค่า secret
 
-Worker อ่านค่า environment จาก Runtime bindings ผ่าน OpenNext request context; ตั้ง Runtime variables ใน Cloudflare dashboard ด้วย และใช้ `--keep-vars` ในคำสั่ง deploy เพื่อรักษาค่าที่ตั้งจาก dashboard
-
 Config อยู่ใน `wrangler.jsonc` และ `open-next.config.ts`; output `.open-next` ถูกสร้างระหว่าง deploy และไม่ต้อง commit หาก Cloudflare dashboard ยังมี deploy command เก่า ต้องแก้ค่าในหน้า Workers Builds ด้วย
 
 ห้ามใส่ service role key, Google private key หรือ token ในตัวแปร `NEXT_PUBLIC_*` หรือในไฟล์ที่ commit เข้า Git แอปนี้ไม่ใช้ service role key จาก browser
@@ -65,3 +63,17 @@ Migration เปิด RLS ทุกตารางที่มีข้อม�
 เสร็จในโค้ดเบื้องต้น: โครง Next.js, หน้า login, บทบาทจาก profiles, RLS migration, ตารางทะเบียนจาก DB, การอ่าน/ตรวจหัวตารางไฟล์, import RPC แบบ transaction, การแจ้ง suspected duplicate, dashboard จากข้อมูลจริง, ตัวกรอง, XLSX export และ print view
 
 ยังไม่เสร็จ/ยังไม่ผ่านการทดสอบ: ตรวจแหล่งข้อมูลจริง, Google Sheets API connector, scheduler, การตั้งค่าแหล่งหลัก/สำรอง, sync-job orchestration/lock ที่ใช้งานจริง, หน้าจัดการ conflict/audit/user, การแบ่งหน้า server-side, audit trigger ครอบคลุมทุกการแก้ไข, rate limiting, virus scanning, Sarabun PDF พร้อม page totals, automated authorization/RLS/integration/e2e tests และการตรวจ security ก่อน production
+# Google Sheets API (อ่านและซิงก์เข้าแอป)
+
+แอปอ่านชีตผ่าน Google Sheets API v4 ด้วย Service Account ฝั่งเซิร์ฟเวอร์เท่านั้น ใช้ scope แบบ read-only, ชีต `data`, คอลัมน์ที่จับคู่จากหัวตาราง และไม่เขียนข้อมูลกลับ Google Sheets
+
+1. ใน Google Cloud Console เปิด Google Sheets API แล้วสร้าง Service Account
+2. แชร์ไฟล์ Spreadsheet ID `1-qvNJdIaPH3t_t-4g61VWqwsKGUQdL4S` ให้ Service Account ด้วยสิทธิ์ Viewer (ไม่ต้องให้ Editor สำหรับการอ่าน)
+3. ใน Cloudflare Dashboard เปิด Worker `documentreport` > Settings > Variables and Secrets แล้วเพิ่มตัวแปร runtime ต่อไปนี้: `GOOGLE_SHEETS_SPREADSHEET_ID` (`1-qvNJdIaPH3t_t-4g61VWqwsKGUQdL4S`), `GOOGLE_SHEETS_RANGE` (`data!A1:U`), `GOOGLE_SERVICE_ACCOUNT_EMAIL` และ Secret `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` จาก JSON key ของบัญชีบริการ (เก็บเฉพาะในช่อง Secret ห้ามใส่ใน Git หรือหน้าเว็บ)
+4. รัน migration `supabase/migrations/202610190003_google_sheets_ingest.sql` ใน Supabase SQL Editor เพื่อเปิด RPC ที่เก็บ source แยกจากการนำเข้าไฟล์
+5. Deploy Worker ใหม่ แล้วลงชื่อเข้าใช้ด้วย Administrator ไปที่ “จัดการการซิงก์ข้อมูล” และเลือก “ซิงก์ข้อมูลทันที”
+
+การทดสอบจาก runtime สำเร็จเมื่อได้ผลซิงก์พร้อมจำนวนอ่าน/เพิ่ม/ซ้ำ/ต้องตรวจสอบ และสถานะ Google Sheets เชื่อมต่อแล้ว การตั้งค่า Scheduler ยังไม่ได้เปิดใน Worker; ต้องกำหนด Cron Trigger และตัวเรียกงานที่ตรวจสอบสิทธิ์แยกก่อนเปิดงานอัตโนมัติ
+
+หากหัวคอลัมน์จำเป็นเปลี่ยน ระบบปฏิเสธชุดซิงก์และเก็บทะเบียนเดิมไว้ คอลัมน์หมายเหตุจะถูกใช้เฉพาะเมื่อหัวตารางระบุหมายเหตุอย่างชัดเจน ถ้าไม่มีจะแสดงค่าว่าง
+
