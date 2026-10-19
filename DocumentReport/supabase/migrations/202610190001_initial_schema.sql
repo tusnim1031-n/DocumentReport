@@ -43,7 +43,7 @@ begin
  perform 1 from public.import_batches where id=p_batch_id for update;
  if not found then raise exception 'batch not found'; end if;
  for row in select value from jsonb_array_elements(p_records) loop
-  fp:=encode(digest(concat_ws('|',coalesce(row->>'register_no',''),coalesce(row->>'book_no',''),coalesce(row->>'document_date',''),coalesce(row->>'sender',''),coalesce(row->>'subject',''),coalesce(row->>'received_date',''),coalesce(row->>'note','')), 'sha256'),'hex');
+  fp:=encode(extensions.digest(concat_ws('|',coalesce(row->>'register_no',''),coalesce(row->>'book_no',''),coalesce(row->>'document_date',''),coalesce(row->>'sender',''),coalesce(row->>'subject',''),coalesce(row->>'received_date',''),coalesce(row->>'note','')), 'sha256'),'hex');
   new_record:=jsonb_build_object('register_no',coalesce(row->>'register_no',''),'book_no',coalesce(row->>'book_no',''),'document_date',nullif(row->>'document_date',''),'sender',coalesce(row->>'sender',''),'subject',coalesce(row->>'subject',''),'received_date',nullif(row->>'received_date',''),'note',coalesce(row->>'note',''));
   select id,document_id into src_id,rec_id from public.source_records where source_system=source_name and fingerprint=fp limit 1;
   if src_id is not null then unchanged:=unchanged+1; update public.source_records set last_seen_at=now(),import_batch_id=p_batch_id where id=src_id; continue; end if;
@@ -61,3 +61,4 @@ begin
  return jsonb_build_object('added',added,'review',review,'unchanged',unchanged);
 end $$;
 revoke all on function public.ingest_import_batch(uuid,jsonb) from public; grant execute on function public.ingest_import_batch(uuid,jsonb) to authenticated;
+
