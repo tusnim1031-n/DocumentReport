@@ -1,0 +1,2 @@
+import {createClient} from "@/lib/supabase/server";
+export async function requireRole(allowed:string[]){const db=await createClient();if(!db)return {error:"ยังไม่ได้ตั้งค่า Supabase",status:503 as const};const {data:{user}}=await db.auth.getUser();if(!user)return {error:"กรุณาเข้าสู่ระบบ",status:401 as const};const {data:profile}=await db.from("profiles").select("role").eq("id",user.id).maybeSingle();if(!profile||!allowed.includes(profile.role))return {error:"ไม่มีสิทธิ์ดำเนินการ",status:403 as const};return {db,user,role:profile.role};}
