@@ -24,6 +24,8 @@ values ('<auth-user-uuid>', '<ชื่อเจ้าหน้าที่>', '
 
 ถ้า deploy ผ่าน Cloudflare Workers Builds ให้ตั้ง Deploy command เป็น `pnpm run deploy` (หรือ `npm run deploy` เมื่อติดตั้งด้วย npm) แทน `npx wrangler deploy` โดยตรง คำสั่งตรงจะไม่สร้าง `.open-next/worker.js` และ Wrangler จะตีความโปรเจกต์เป็น static assets จึงเกิด error ว่าไม่พบ directory containing static files ตั้ง Build command ให้ติดตั้ง dependencies ตาม package manager ที่ใช้ และกำหนด `NEXT_PUBLIC_SUPABASE_URL` กับ `NEXT_PUBLIC_SUPABASE_ANON_KEY` ใน Build variables; ตั้ง server secrets เพิ่มใน Worker secrets ตามต้องใช้จริง อย่า commit ค่า secret
 
+Worker อ่านค่า environment จาก Runtime bindings ผ่าน OpenNext request context; ตั้ง Runtime variables ใน Cloudflare dashboard ด้วย และใช้ `--keep-vars` ในคำสั่ง deploy เพื่อรักษาค่าที่ตั้งจาก dashboard
+
 Config อยู่ใน `wrangler.jsonc` และ `open-next.config.ts`; output `.open-next` ถูกสร้างระหว่าง deploy และไม่ต้อง commit หาก Cloudflare dashboard ยังมี deploy command เก่า ต้องแก้ค่าในหน้า Workers Builds ด้วย
 
 ห้ามใส่ service role key, Google private key หรือ token ในตัวแปร `NEXT_PUBLIC_*` หรือในไฟล์ที่ commit เข้า Git แอปนี้ไม่ใช้ service role key จาก browser
