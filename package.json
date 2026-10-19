@@ -1,0 +1,8 @@
+{
+  "name": "documentreport-cloudflare-build-entry",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "deploy": "pnpm --dir ./DocumentReport install --frozen-lockfile && pnpm --dir ./DocumentReport run deploy"
+  }
+}
