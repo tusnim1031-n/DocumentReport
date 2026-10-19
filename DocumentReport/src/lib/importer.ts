@@ -22,7 +22,7 @@ export function parseDate(value: unknown): string | null {
   if (value instanceof Date && !Number.isNaN(value.valueOf())) return value.toISOString().slice(0,10);
   if (typeof value === "number" && value > 1) { const d = XLSX.SSF.parse_date_code(value); if (d) return new Date(Date.UTC(d.y,d.m-1,d.d)).toISOString().slice(0,10); }
   if (typeof value !== "string" || !value.trim()) return null;
-  const s=value.trim(); const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  const s=value.trim(); const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?$/);
   if (m) { const day=+m[1], month=+m[2], rawYear=+m[3], y=rawYear>=2400?rawYear-543:rawYear; if(month<1||month>12||day<1||day>31)return null; return `${y}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`; }
   const d=new Date(s); return Number.isNaN(d.valueOf())?null:d.toISOString().slice(0,10);
 }
