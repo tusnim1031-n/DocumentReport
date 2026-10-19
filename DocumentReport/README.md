@@ -77,3 +77,6 @@ Migration เปิด RLS ทุกตารางที่มีข้อม�
 
 หากหัวคอลัมน์จำเป็นเปลี่ยน ระบบปฏิเสธชุดซิงก์และเก็บทะเบียนเดิมไว้ คอลัมน์หมายเหตุจะถูกใช้เฉพาะเมื่อหัวตารางระบุหมายเหตุอย่างชัดเจน ถ้าไม่มีจะแสดงค่าว่าง
 
+## Cloudflare Preview branch settings
+
+In Workers Builds > Settings > Builds > Previews Base, keep Root directory as `/` and set Build command to `pnpm --dir ./DocumentReport install --frozen-lockfile && pnpm --dir ./DocumentReport exec opennextjs-cloudflare build`; set Preview command to `pnpm --dir ./DocumentReport exec wrangler preview`. The application and `wrangler.jsonc` are under the `DocumentReport/` repository subdirectory, so commands must explicitly run there. That Wrangler config must include `"previews": {}`.

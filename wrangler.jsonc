@@ -1,0 +1,16 @@
+{
+  "$schema": "./DocumentReport/node_modules/wrangler/config-schema.json",
+  "name": "documentreport",
+  "main": "DocumentReport/.open-next/worker.js",
+  "compatibility_date": "2026-10-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "previews": {},
+  "assets": {
+    "directory": "DocumentReport/.open-next/assets",
+    "binding": "ASSETS"
+  },
+  "build": {
+    "command": "pnpm --dir ./DocumentReport install --frozen-lockfile && pnpm --dir ./DocumentReport exec opennextjs-cloudflare build"
+  },
+  "observability": { "enabled": true }
+}
