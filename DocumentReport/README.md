@@ -18,6 +18,14 @@ values ('<auth-user-uuid>', '<ชื่อเจ้าหน้าที่>', '
 
 7. รัน `npm run dev`; สำหรับเครื่องจริงใช้ HTTPS และกำหนดค่า environment variables ผ่าน secret manager ของ Hosting
 
+## Deploy บน Cloudflare Workers
+
+โปรเจกต์ตั้งค่า `@opennextjs/cloudflare` เพื่อแปลง Next.js build ให้อยู่ในรูป Worker ก่อน deploy แล้ว ใช้ `pnpm run preview` ตรวจ runtime บน Workers หรือ `pnpm run deploy` เพื่อ build และ deploy
+
+ถ้า deploy ผ่าน Cloudflare Workers Builds ให้ตั้ง Deploy command เป็น `pnpm run deploy` (หรือ `npm run deploy` เมื่อติดตั้งด้วย npm) แทน `npx wrangler deploy` โดยตรง คำสั่งตรงจะไม่สร้าง `.open-next/worker.js` และ Wrangler จะตีความโปรเจกต์เป็น static assets จึงเกิด error ว่าไม่พบ directory containing static files ตั้ง Build command ให้ติดตั้ง dependencies ตาม package manager ที่ใช้ และกำหนด `NEXT_PUBLIC_SUPABASE_URL` กับ `NEXT_PUBLIC_SUPABASE_ANON_KEY` ใน Build variables; ตั้ง server secrets เพิ่มใน Worker secrets ตามต้องใช้จริง อย่า commit ค่า secret
+
+Config อยู่ใน `wrangler.jsonc` และ `open-next.config.ts`; output `.open-next` ถูกสร้างระหว่าง deploy และไม่ต้อง commit หาก Cloudflare dashboard ยังมี deploy command เก่า ต้องแก้ค่าในหน้า Workers Builds ด้วย
+
 ห้ามใส่ service role key, Google private key หรือ token ในตัวแปร `NEXT_PUBLIC_*` หรือในไฟล์ที่ commit เข้า Git แอปนี้ไม่ใช้ service role key จาก browser
 
 ## นำเข้าไฟล์
